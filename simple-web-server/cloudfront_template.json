@@ -1,0 +1,90 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "AWS CloudFormation Stack to create webhosting cloudfront distribution",
+  "Parameters": {
+    "OriginAccessId": {
+      "Type": "String",
+      "Description": "The cloud front origin access identity used to serve the website"
+    },
+    "BucketName": {
+      "Type": "String",
+      "Description": "Name of the bucket."
+    },
+    "LambdaARN": {
+      "Type": "String",
+      "Description": "The Arn to the Lambda function, this should be an Arn for an exact version."
+    }
+  },
+  "Resources": {
+    "CloudFrontDistribution": {
+      "Type": "AWS::CloudFront::Distribution",
+      "Properties": {
+        "DistributionConfig": {
+          "Comment": "Simple Distribution",
+          "CacheBehaviors": [],
+          "Origins": [
+            {
+              "OriginPath": "",
+              "S3OriginConfig": {
+                "OriginAccessIdentity": {
+                  "Fn::Sub": "origin-access-identity/cloudfront/${OriginAccessId}"
+                }
+              },
+              "Id": "root-website",
+              "DomainName": {
+                "Fn::Sub": "${BucketName}.s3.amazonaws.com"
+              }
+            }
+          ],
+          "DefaultRootObject": "index.html",
+          "PriceClass": "PriceClass_100",
+          "Enabled": "True",
+          "DefaultCacheBehavior": {
+            "LambdaFunctionAssociations": [
+              {
+                "EventType": "origin-request",
+                "LambdaFunctionARN": {
+                  "Ref": "LambdaARN"
+                }
+              }
+            ],
+            "TargetOriginId": "root-website",
+            "ViewerProtocolPolicy": "redirect-to-https",
+            "ForwardedValues": {
+              "QueryString": "False"
+            }
+          },
+          "CustomErrorResponses": [
+            {
+              "ErrorCode": 404,
+              "ResponsePagePath": "/index.html",
+              "ResponseCode": 200
+            },
+            {
+              "ErrorCode": 403,
+              "ResponsePagePath": "/index.html",
+              "ResponseCode": 200
+            }
+          ]
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "CloudfrontDNS": {
+      "Description": "The domain name for the cloudfront distribution",
+      "Value": {
+        "Fn::GetAtt": [
+          "CloudFrontDistribution",
+          "DomainName"
+        ]
+      }
+    },
+    "CloudfrontID": {
+      "Description": "The ID for the cloudfront distribution",
+      "Value": {
+        "Ref": "CloudFrontDistribution"
+      }
+    }
+  }
+}
