@@ -1,0 +1,81 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "AWS CloudFormation Stack for S3 bucket serving content from",
+  "Parameters": {
+    "BucketName": {
+      "Type": "String",
+      "Description": "Name of the bucket."
+    },
+    "OriginAccessId": {
+      "Type": "String",
+      "Description": "The cloud front origin access identity used to restrict access"
+    }
+  },
+  "Resources": {
+    "S3WebBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": {
+          "Ref": "BucketName"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "BucketName"
+            }
+          }
+        ]
+      }
+    },
+    "WebsiteBucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "S3WebBucket"
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:GetObject"
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:s3:::",
+                    {
+                      "Ref": "S3WebBucket"
+                    },
+                    "/*"
+                  ]
+                ]
+              },
+              "Principal": {
+                "AWS": {
+                  "Fn::Sub": "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${OriginAccessId}"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "S3Bucket": {
+      "Description": "The S3 bucket refrence",
+      "Value": {
+        "Ref": "S3WebBucket"
+      }
+    },
+    "CFOriginAccessId": {
+      "Description": "The Origin Access Identity used",
+      "Value": {
+        "Ref": "OriginAccessId"
+      }
+    }
+  }
+}

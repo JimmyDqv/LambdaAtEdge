@@ -2,7 +2,7 @@
 In this project I will present my different experiments that I have done running Lambda functions @ CloudFront Edge locations.  
 
 ## Limitations
-The Lambda function have some limitations. Max memory size is 128mb. The function must be deployed in us-east-1 region for CloudFront to be able to fetch it. CloudFront can only use fixed versions of the function. You can't use $LATEST
+The Lambda function have some limitations. Max memory size is 128mb and the timeout for the function is 5 seconds. The function must be deployed in us-east-1 region for CloudFront to be able to fetch it. CloudFront can only use fixed versions of the function. You can't use $LATEST
 
  ## Events from CloudFront
  CloudFront can call our Lambda in 4 points:
@@ -41,3 +41,11 @@ Specifying index.html as your default index file would only kick in when navigat
   
 ## Solution with Lambda
 To solve this it's possible to have a Lambda function triggered with one of the events to replace the requested url and return the proper index file. Since we don't like this to run on all request, we would like responses to be cached we trigger on Origin Request event.
+
+# Viewer based content
+
+Depending on what client device that is requesting a file you might like to return different versions. Instead of having each client requesting the different files CloudFront could return different versions.
+
+## Solution with Lambda
+To accomplish this let a Lambda function trigger for the origin-request event. This will allow CloudFront to cache the result and to be able to add custom headers cloudfront-is-*-viewer and cloudfront-viewer-country. To be able to get these headers in the event we must setup CloudFront to cache these headers.  
+When the Lambda function then is triggered the url can be rewritten to fetch content based on these headers.

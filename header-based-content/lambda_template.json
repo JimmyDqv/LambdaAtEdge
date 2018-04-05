@@ -1,0 +1,81 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Transform": "AWS::Serverless-2016-10-31",
+  "Description": "Stack for deploying Lambda function running at CloudFront.",
+  "Resources": {
+    "Interface": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "http-request.handler",
+        "Description": "Rewrite requests based on viewer being desktop, mobile, tablet or tv",
+        "Runtime": "nodejs6.10",
+        "MemorySize": 128,
+        "Timeout": 5,
+        "CodeUri": "./src",
+        "FunctionName": "edge-viewer-based-redirect",
+        "Role": {
+          "Fn::GetAtt": [
+            "LambdaExecutionRole",
+            "Arn"
+          ]
+        },
+        "Tags": {
+          "Name": {
+            "Fn::Sub": "${AWS::StackName}-interface"
+          }
+        }
+      }
+    },
+    "LambdaDeployVersion7": {
+      "Type": "AWS::Lambda::Version",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "Interface",
+            "Arn"
+          ]
+        }
+      }
+    },
+    "LambdaExecutionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com",
+                  "edgelambda.amazonaws.com"
+                ]
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "RoleName": "edge-viewer-based-redirect-lambda-exe-role",
+        "Policies": [
+          {
+            "PolicyName": "edge-viewer-based-redirect-lambda-exe-policy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}
