@@ -31,7 +31,7 @@ exports.handler = function (event, context, callback) {
     // Fetch the uri from the request
     var uri = request.uri
 
-    // Rewrite the url to switch urls ending with / to /index.html
+    // Rewrite the url. Add the generated path for the used viewer.
     uri = '/' + viewerPath + '/' + countryPath + uri
 
     // Replace the uri in the request

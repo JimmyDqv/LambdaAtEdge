@@ -4,7 +4,7 @@
   "Parameters": {
     "OriginAccessId": {
       "Type": "String",
-      "Description": "The CloudFront origin access identity used to serve the website"
+      "Description": "The CloudFront origin access identity used to serve the content"
     },
     "BucketName": {
       "Type": "String",
